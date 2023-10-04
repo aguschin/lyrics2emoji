@@ -1,0 +1,5 @@
+outs:
+- md5: 167bec6fd1101b63136d33823bed86ed
+  size: 5628032
+  hash: md5
+  path: emoji_name_vectorized.npy
