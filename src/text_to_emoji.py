@@ -31,7 +31,6 @@ def uni_to_emo(unicodes):
     input: list of x-bit unicode of 1 emoji. For example [2F1K0, 0102]
     output: emoji corressponding to such code
     """
-    # unicodes = x.split('-')
     emoji_str = ''
     for uni in unicodes:
         uni_hex = uni.zfill(8)
