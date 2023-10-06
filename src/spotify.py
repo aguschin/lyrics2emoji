@@ -128,5 +128,5 @@ def get_lyric_of_top_song(
 
     return lyrics
 
-if __name__ == '__main__':
-    print(get_lyric_of_top_song('spotify:playlist:37i9dQZF1E4AfEUiirXPyP', limit=5))
+#if __name__ == '__main__':
+#    print(get_lyric_of_top_song('spotify:playlist:37i9dQZF1E4AfEUiirXPyP', limit=5))

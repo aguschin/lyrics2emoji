@@ -4,6 +4,8 @@ import { GrSpotify } from 'react-icons/gr';
 import { Layout } from './components/Layout';
 import LoginScreen from './components/LoginScreen';
 
+
+
 // TODO: add filter for 30 days, 6 months, all time
 // TODO: add filter for amount of songs (10, 20, 30, 40, 50)
 
@@ -136,8 +138,9 @@ const App = () => {
       </LoginScreen>
       {artists && tracks && (
         <Grid>
+
           <Column>
-            <h2>My favourite artists</h2>
+            <h2>Your favourite artists</h2>
             <ol>
               {artists.map((artist) => (
                 <li key={artist.id}>
@@ -147,7 +150,7 @@ const App = () => {
             </ol>
           </Column>
           <Column>
-            <h2>My favourite tracks</h2>
+            <h2>Your favourite tracks</h2>
             <ol>
               {tracks.map((track) => (
                 <li key={track.id}>
