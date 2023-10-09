@@ -1,0 +1,5 @@
+outs:
+- md5: 52fcc5193b615c08adf5949ac2d5d776
+  size: 6325376
+  hash: md5
+  path: lyrics_vectorized.npy
