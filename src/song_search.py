@@ -26,6 +26,7 @@ tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
 model = DistilBertModel.from_pretrained("distilbert-base-uncased")
 embedding_dimension = model.config.hidden_size
 
+# create annoy index for faster search
 annoy_index = AnnoyIndex(embedding_dimension, 'euclidean')
 for i, vectorized_lyric in enumerate(vectorized_lyrics):
     annoy_index.add_item(i, vectorized_lyric)
@@ -34,12 +35,11 @@ annoy_index.build(10)
 def lyrics_pre_process(lyrics: str):
     return lyrics.split('\n')[0].replace('\r', '')
 
-def pre_process(value: str):
+def embed(value: str):
     encoded_input = tokenizer(value, return_tensors='pt')
     output = model(**encoded_input)
     return output.last_hidden_state.squeeze(0)[-1].detach().numpy().reshape(1, -1)
 
 def find_nearest_song_annoy(emojis, n=1):
-
-    idx = annoy_index.get_nns_by_vector(pre_process(emojis).reshape(-1,1), n)
+    idx = annoy_index.get_nns_by_vector(embed(emojis).reshape(-1,1), n)
     return list(df[song_col].iloc[idx])
