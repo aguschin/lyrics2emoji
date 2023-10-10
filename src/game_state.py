@@ -1,4 +1,5 @@
 from random import choice
+from text_to_emoji import translate_text
 
 
 class GameState:
@@ -23,6 +24,9 @@ class GameState:
         self.score = 0
         self.options = get_options([])
         self.correct_option = choice(self.options)
+
+    def get_correct_option_emoji(self) -> str:
+        return translate_text(self.correct_option)
 
     def __repr__(self) -> str:
         return f"words: {self.options} \ncorrect: {self.correct_option} " \

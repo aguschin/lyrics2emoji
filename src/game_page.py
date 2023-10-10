@@ -1,13 +1,13 @@
 import streamlit as st
+
 from game_state import GameState
-from text_to_emoji import translate_text
 
-GAME_STATE = "game_state"
 
-if GAME_STATE not in st.session_state:
-    st.session_state[GAME_STATE] = GameState()
+def init_game_state() -> GameState:
+    if "game_state" not in st.session_state:
+        st.session_state["game_state"] = GameState()
 
-game_state: GameState = st.session_state.game_state
+    return st.session_state.game_state
 
 
 def guess(option: str) -> None:
@@ -29,7 +29,7 @@ def centered_title(title):
 
 
 def place_game() -> None:
-    centered_title(translate_text(game_state.correct_option))
+    centered_title(game_state.get_correct_option_emoji())
 
     option1_col, option2_col, option3_col = st.columns(3)
     option1, option2, option3 = game_state.options
@@ -49,9 +49,14 @@ def place_game_over() -> None:
     st.button(label="retry", on_click=game_state.reset)
 
 
-centered_title("Lyrics-2-Emoji")
+def play_game() -> None:
+    centered_title("Lyrics-2-Emoji")
 
-if game_state.game_over:
-    place_game_over()
-else:
-    place_game()
+    if game_state.game_over:
+        place_game_over()
+    else:
+        place_game()
+
+
+game_state: GameState = init_game_state()
+play_game()
