@@ -29,7 +29,6 @@ def centered_title(title):
 
 
 def place_game() -> None:
-    print(game_state.correct_option)
     centered_title(translate_text(game_state.correct_option))
 
     option1_col, option2_col, option3_col = st.columns(3)
