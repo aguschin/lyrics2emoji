@@ -61,4 +61,4 @@ def translate_given_json_file(filename):
 if __name__ == '__main__':
     given_file_name = argv[1]
     result_path = translate_given_json_file(given_file_name)
-    print(f'Translated texts saved to: \n{result_path}\n')
+    print(f'Translated texts saved to: \n\t{result_path}')
