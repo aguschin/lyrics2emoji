@@ -1,8 +1,20 @@
-import pandas as pd
+import contextlib
+import json
+from pathlib import Path
+from typing import TypedDict, List
+from pprint import pprint
+
 from bs4 import BeautifulSoup
 import requests
 import re
 from spotify_constant import SPOTIFY_CONSTANT as sc
+
+
+class Song(TypedDict):
+    URI : str  # e.g. spotify:track:4HcARAxzsbIB3MqiEkejM6
+    Artist : str
+    Songname : str
+
 
 def get_songname_artist_from_result(result):
     return {
@@ -34,7 +46,7 @@ def get_top_song_from_playlist(
     
     return list_of_song
 
-def generate_genius_url(song_information : dict) -> str:
+def generate_genius_url(song_information : Song) -> str:
     '''
     generate lyric's url
 
@@ -104,6 +116,11 @@ def get_lyrics_from_genius_url(
         lyrics = ' '.join(lyrics)
 
     return lyrics
+class SongNormalised(TypedDict):
+    song_name: str
+    artist_name: str
+    lyrics: str
+
 
 def get_lyric_of_top_song(
     playlist_URI : str, 
@@ -122,14 +139,25 @@ def get_lyric_of_top_song(
     return:
         list of lyrics
     '''
-    top_song_list = get_top_song_from_playlist(playlist_URI, limit=limit, market=market)
+    top_song_list: List[Song] = get_top_song_from_playlist(playlist_URI, limit=limit, market=market)
 
-    lyrics = []
+    with_lyrics: List[SongNormalised] = []
+    errors = 0
     for song in top_song_list:
-        lyric = get_lyrics_from_genius_url(generate_genius_url(song), title=title, one_line=one_line)
-        lyrics.append(lyric)
+        try:
+            lyric = get_lyrics_from_genius_url(generate_genius_url(song), title=title, one_line=one_line)
+            with_lyrics.append({'song_name': song[sc.SONGNAME], 'artist_name': song[sc.ARTIST], 'lyrics': lyric})
+        except Exception as e:
+            errors += 1
+            print(f'Error: {e}. {errors} errors so far out of {len(with_lyrics)} songs processed. Skipping song {song[sc.SONGNAME]} by {song[sc.ARTIST]}')
+    return with_lyrics
 
-    return lyrics
+def write_songs_to_json_file(filename, songs: List[SongNormalised]):
+    path = Path('data/sample_data/', filename)
+    with open(path, 'w') as f:
+        json.dump(songs, f, indent=4, sort_keys=True)
 
 if __name__ == '__main__':
-    print(get_lyric_of_top_song('spotify:playlist:37i9dQZF1E4AfEUiirXPyP', limit=5))
+    res = get_lyric_of_top_song('spotify:playlist:7E3uEa1emOcbZJuB8sFXeK', limit=100)
+    write_songs_to_json_file('top_100_spotify.json', res)
+    pprint(res)
