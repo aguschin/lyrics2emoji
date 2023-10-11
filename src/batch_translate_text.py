@@ -1,3 +1,18 @@
+"""Batch translate text from json file to emojis.
+
+Usage:
+python src/batch_translate_text.py  /root/lyrics2emoji/src/example_songs.json
+
+Output:
+Translated texts saved to:
+/root/lyrics2emoji/src/example_songs_translated.json
+
+Format of json file:
+[{"title": "song title", "text": "song text"}, ...]
+
+Format of json file output:
+[{"title": "song title", "text": "song text translated to emojis"}, ...]
+"""
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -33,14 +48,17 @@ def save_texts_to_file(texts: List[Dict], original_filename: str):
     filepath = Path(original_filename.replace('.json', '_translated.json'))
     with open(filepath, 'w') as f:
         json.dump(texts, f)
+    return filepath
 
 
 def translate_given_json_file(filename):
     songs = load_texts_from_file(filename)
     translated_texts = batch_translate_texts(songs)
-    save_texts_to_file(translated_texts, filename)
+    filepath = save_texts_to_file(translated_texts, filename)
+    return filepath
 
 
 if __name__ == '__main__':
     given_file_name = argv[1]
-    translate_given_json_file(given_file_name)
+    result_path = translate_given_json_file(given_file_name)
+    print(f'Translated texts saved to: \n{result_path}\n')
