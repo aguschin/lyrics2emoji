@@ -47,9 +47,12 @@ def generate_genius_url(song_information : dict) -> str:
 
     songname = song_information[sc.SONGNAME]
     songname = re.sub(re.compile('\(.*?\)|\[.*?\]|\{.*?\}'), '', songname).strip()
-    songname = songname.replace('\'', '').replace('"', '').replace('’', '')
     songname = songname.replace('&', 'and') # special case
-    songname = songname.replace(' ', '-')
+    
+    # remove special alphabet
+    songname = ''.join(char for char in songname if char.isalnum() or char == ' ')
+    songname = songname.split(' ')
+    songname = '-'.join([text for text in songname if text != ''])
 
     genius_url = f'https://genius.com/{artist}-{songname}-lyrics'
     return genius_url
