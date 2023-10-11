@@ -32,9 +32,10 @@ class GameState:
         return translate_text(self.correct_option)
 
     def __repr__(self) -> str:
-        return f"words: {self.options} \ncorrect: {self.correct_option} " \
-               f"\ncorrect songs: {self.correct_songs}\nscore:" \
-               f" {self.score} \ngame over: {self.game_over}"
+        result: str = ""
+        for attr, attr_val in self.__dict__.items():
+            result += f"{attr}: {attr_val}\n"
+        return result
 
 
 @st.cache_data
