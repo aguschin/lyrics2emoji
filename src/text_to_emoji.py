@@ -15,7 +15,7 @@ strings of emojis
 
 # emoji source and column of emoji
 df = pd.read_csv('data/emoji.csv')
-emo_col = 'emojis'
+emo_col = 'emoji'
 
 # embedding of each emoji name
 vectorized_name = np.load('data/emoji_name_vectorized.npy')
@@ -25,6 +25,19 @@ nlp = spacy.load("en_core_web_sm")
 tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
 model = DistilBertModel.from_pretrained("distilbert-base-uncased")
 
+def uni_to_emo(unicodes):
+    """
+    Usage:
+    input: list of x-bit unicode of 1 emoji. For example [2F1K0, 0102]
+    output: emoji corressponding to such code
+    """
+    emoji_str = ''
+    for uni in unicodes:
+        uni_hex = uni.zfill(8)
+        uni_int = int(uni_hex, 16)
+        emoji = chr(uni_int)
+        emoji_str += emoji
+    return emoji_str
 
 def clean_text(text):
     doc = nlp(text)
@@ -48,6 +61,7 @@ def find_closest(word, n=1):
 
 
 def translate_text(text, k=1):
+    """Returns text translated to emojis."""
     translated = ""
     for word in clean_text(text).split():
         closest = find_closest(word, n=k)

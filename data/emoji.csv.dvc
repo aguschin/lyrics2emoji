@@ -1,0 +1,5 @@
+outs:
+- md5: 7f0141aace482397a7e8dc37544c0c86
+  size: 91329
+  hash: md5
+  path: emoji.csv
