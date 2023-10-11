@@ -7,7 +7,10 @@ RED_HEART_EMOJI: str = "\u2764\uFE0F"
 RETRY_LABEL: str = "Try Again!"
 GAME_TITLE: str = "Lyrics-2-Emoji"
 GAME_STATE: str = "game_state"
+BEST: str = "best"
 SCROLL_HEIGHT: int = 400
+WRONG_GUESS_SIZE: int = 25
+BEST_SIZE: int = 20
 
 
 class Game:
@@ -16,16 +19,32 @@ class Game:
         if GAME_STATE not in st.session_state:
             st.session_state[GAME_STATE] = GameState()
 
+        if BEST not in st.session_state:
+            st.session_state[BEST] = 0
+
         self.state: GameState = st.session_state.game_state
 
     def guess(self, option: str) -> None:
         self.state.next_level(option)
+        if self.state.game_over:
+            self.update_best()
+
+    def update_best(self) -> None:
+        current_best: int = st.session_state[BEST]
+        current_score: int = self.state.get_score()
+        if current_score > current_best:
+            st.session_state[BEST] = current_score
 
     def play(self) -> None:
         mark_down.centered_title(GAME_TITLE)
 
+        def place_best() -> None:
+            best: str = f"best score: {st.session_state[BEST]}"
+            mark_down.centered_title(best, size=BEST_SIZE)
+
         if self.state.game_over:
             self.place_wrong_songs()
+            place_best()
             self.place_try_again()
         else:
             self.place_lives_and_score()
@@ -42,8 +61,10 @@ class Game:
             with wrong_col:
                 correct_song, wrong_guess, song_emoji = wrong_song
                 mark_down.centered_title(song_emoji)
-                mark_down.centered_title(correct_song, color="green", size=25)
-                mark_down.centered_title(wrong_guess, color="red", size=25)
+                mark_down.centered_title(correct_song, color="green",
+                                         size=WRONG_GUESS_SIZE)
+                mark_down.centered_title(wrong_guess, color="red",
+                                         size=WRONG_GUESS_SIZE)
 
         place_wrong_song(wrong_song1, wrong_col1)
         place_wrong_song(wrong_song2, wrong_col2)
