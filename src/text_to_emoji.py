@@ -46,14 +46,14 @@ def clean_text(text):
     return text
 
 
-def pre_process(value: str):
+def embed(value: str):
     encoded_input = tokenizer(value, return_tensors='pt')
     output = model(**encoded_input)
     return output.last_hidden_state.squeeze(0)[-1].detach().numpy().reshape(1, -1)
 
 
 def find_closest(word, n=1):
-    vector = pre_process(word)
+    vector = embed(word)
     similarities = cosine_similarity(vectorized_name, vector)  # * 0.95 + 0.05 * cosine_similarity(vectorized3, vector)
     if n == 1:
         return df[emo_col].iloc[np.argmax(similarities)]
