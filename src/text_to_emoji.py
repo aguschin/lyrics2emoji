@@ -61,6 +61,7 @@ def find_closest(word, n=1):
 
 
 def translate_text(text, k=1):
+    """Returns text translated to emojis."""
     translated = ""
     for word in clean_text(text).split():
         closest = find_closest(word, n=k)
