@@ -20,7 +20,7 @@ def load_texts_from_file(filename):
 
 
 def save_texts_to_file(texts: List[str], original_filename: str):
-    filepath = Path(f'{original_filename.lstrip(".json")}_translated.json')
+    filepath = Path(original_filename.replace('.json', '_translated.json'))
     with open(filepath, 'w') as f:
         json.dump(texts, f)
 
@@ -32,4 +32,5 @@ def translate_given_json_file(filename):
 
 
 if __name__ == '__main__':
-    translate_given_json_file(argv[1])
+    given_file_name = argv[1]
+    translate_given_json_file(given_file_name)
