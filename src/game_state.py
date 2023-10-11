@@ -4,32 +4,48 @@ from pandas import DataFrame
 from pandas import read_csv
 from text_to_emoji import translate_text
 
+STARTING_LIVES: int = 3
+OPTION_COUNT: int = 3
+CSV_MAX_ROWS: int = 1000
+
 
 class GameState:
     def __init__(self) -> None:
         self.options: list[str] = get_options()
         self.correct_option: str = choice(self.options)
-        self.correct_songs: list[str] = []
-        self.score: int = 0
+        self.correct_option_emoji: str = translate_text(self.correct_option)
+        self.correct_songs: list[tuple[str, str]] = []
+        self.incorrect_songs: list[tuple[str, str, str]] = []
         self.game_over: bool = False
 
+    def get_lives(self) -> int:
+        return STARTING_LIVES - len(self.incorrect_songs)
+
+    def get_score(self) -> int:
+        return len(self.correct_songs)
+
     def next_level(self, option: str) -> None:
-        self.score += 1
-        self.correct_songs.append(option)
+        if option == self.correct_option:
+            self.correct_songs.append((self.correct_option, self.correct_option_emoji))
+
+        else:
+            self.incorrect_songs.append(
+                (self.correct_option, option, self.correct_option_emoji))
+            if self.get_lives() == 0:
+                self.game_over = True
+                return
+
         self.options = get_options()
         self.correct_option = choice(self.options)
-
-    def end_game(self) -> None:
-        self.game_over = True
+        self.correct_option_emoji = translate_text(self.correct_option)
 
     def reset(self) -> None:
         self.game_over = False
-        self.score = 0
         self.options = get_options()
+        self.correct_songs = []
+        self.incorrect_songs = []
         self.correct_option = choice(self.options)
-
-    def get_correct_option_emoji(self) -> str:
-        return translate_text(self.correct_option)
+        self.correct_option_emoji = translate_text(self.correct_option)
 
     def __repr__(self) -> str:
         result: str = ""
@@ -40,10 +56,10 @@ class GameState:
 
 @st.cache_data
 def get_data() -> DataFrame:
-    data = read_csv("data/sample_data/top_10_artists_songs.csv", nrows=1000)
+    data = read_csv("data/sample_data/top_10_artists_songs.csv", nrows=CSV_MAX_ROWS)
     return data
 
 
 def get_options() -> list[str]:
     data: DataFrame = get_data()
-    return data.sample(n=3).song_name.values
+    return data.sample(n=OPTION_COUNT).song_name.values
