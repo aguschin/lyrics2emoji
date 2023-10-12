@@ -11,8 +11,7 @@ def centered_title(title: str, color: str = "black", size: int = 45) -> None:
     st.markdown(style, unsafe_allow_html=True)
     st.markdown(f"<h1 style='color: {color}; font-size: {size}px' "
                 f"class='centered-title'"
-                f">{title}</h1>",
-                unsafe_allow_html=True)
+                f">{title}</h1>", unsafe_allow_html=True)
 
 
 def separator() -> None:
@@ -21,6 +20,10 @@ def separator() -> None:
 
 def empty_space() -> None:
     st.markdown("##")
+
+
+def get_colored_text(text: str, color: str) -> str:
+    return f"<span style='color: {color}'>{text}</span>"
 
 
 def scroll_text(height: int, text: str) -> None:
