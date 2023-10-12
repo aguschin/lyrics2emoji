@@ -5,6 +5,8 @@ from typing import List
 from chatgpt.text_to_emoji import translate_text
 from spotify import SongNormalised
 from concurrent.futures import ThreadPoolExecutor
+from tenacity import retry, stop_after_attempt, wait_fixed
+
 
 
 DRY_RUN = False
@@ -21,6 +23,7 @@ def load_raw_songs(filename) -> List[SongNormalised]:
     return items
 
 
+@retry(stop=stop_after_attempt(2))
 def process_song(song_data: SongNormalised) -> SongTranslated:
     # Replace this with your song processing logic
     lyrics = song_data["lyrics"]
@@ -35,15 +38,21 @@ def process_song(song_data: SongNormalised) -> SongTranslated:
 
 def process_songs_multithreaded(songs, num_threads=4):
     songs_translated = []  # List to store processed songs
-
+    songs_processed = 0
+    total_songs = len(songs)
     with ThreadPoolExecutor(max_workers=num_threads) as executor:
         # Submit each song for processing and store the future object
         futures = [executor.submit(process_song, song) for song in songs]
 
         # Retrieve results as they become available
         for future in futures:
-            song_result = future.result()
-            songs_translated.append(song_result)
+            try:
+                song_result = future.result()
+                songs_translated.append(song_result)
+            except Exception as e:
+                print(f"Ignored error processing song: {e}")
+            songs_processed += 1
+            print(f"Processed {songs_processed}/{total_songs} songs", end="\r")
 
     return songs_translated
 
@@ -58,12 +67,12 @@ def write_translated_songs_to_file(songs: List[SongTranslated], raw_filename: st
 if __name__ == "__main__":
     # Replace this with your list of songs
     songs_raw = load_raw_songs('data/sample_data/top_300_spotify.json')
-    songs = songs_raw[:10]
+    songs = songs_raw[:]
     # Specify the number of threads you want to use
-    num_threads = 10
+    num_threads = 3
 
     translated_songs = process_songs_multithreaded(songs, num_threads)
-    print(translated_songs)
+
     fp = write_translated_songs_to_file(translated_songs, 'data/sample_data/top_300_spotify.json')
     print(f'Translated songs saved to: \n\t{fp}')
     for song in translated_songs:
