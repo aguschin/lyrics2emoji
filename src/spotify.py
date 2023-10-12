@@ -26,7 +26,8 @@ def get_songname_artist_from_result(result):
 def get_top_song_from_playlist(
     playlist_URI : str, 
     limit : int = sc.TOP_SONG_LIMIT_CONSTANT, 
-    market : str = sc.MARKET_CONSTANT
+    market : str = sc.MARKET_CONSTANT,
+    offset: int = 0,
 ) -> list:
     '''
     get top N songs from the playlist
@@ -35,10 +36,11 @@ def get_top_song_from_playlist(
         playlist_URI : URI of spotify playlist
         limit : top song limit search
         market : region market song search
+        offset: skip first n songs of the playlist
     return:
         list of songname, artist and URI as json
     '''
-    results = sc.SPOTIFY.playlist_tracks(playlist_URI, limit=limit, market=market)
+    results = sc.SPOTIFY.playlist_tracks(playlist_URI, limit=limit, market=market, offset=offset)
 
     list_of_song = []
     for song in results['items']:
@@ -113,9 +115,10 @@ def get_lyrics_from_genius_url(
         lyrics += merge_lyric
 
     if one_line: # merge into one line
-        lyrics = ' '.join(lyrics)
-
+        lyrics = '\n'.join(lyrics)
     return lyrics
+
+
 class SongNormalised(TypedDict):
     song_name: str
     artist_name: str
@@ -123,11 +126,13 @@ class SongNormalised(TypedDict):
 
 
 def get_lyric_of_top_song(
-    playlist_URI : str, 
-    limit : int = sc.TOP_SONG_LIMIT_CONSTANT, 
-    market : str = sc.MARKET_CONSTANT,
-    title : bool = sc.INCLUDING_TITLE_CONSTANT, 
-    one_line : bool = sc.ONE_LINE_CONSTANT
+        playlist_URI : str,
+        limit : int = sc.TOP_SONG_LIMIT_CONSTANT,
+        market : str = sc.MARKET_CONSTANT,
+        title : bool = sc.INCLUDING_TITLE_CONSTANT,
+        one_line : bool = sc.ONE_LINE_CONSTANT,
+        first_n_song: int = 0,
+        cache_filename: str = None,
 ) -> list:
     '''
     args:
@@ -139,25 +144,47 @@ def get_lyric_of_top_song(
     return:
         list of lyrics
     '''
-    top_song_list: List[Song] = get_top_song_from_playlist(playlist_URI, limit=limit, market=market)
-
+    processed_songs = []
+    processed_names = set()
+    if cache_filename:
+        try:
+            with open(Path('data/sample_data/', cache_filename), 'r') as f:
+                processed_songs = json.load(f)
+        except FileNotFoundError:
+            pass
+    for song in processed_songs:
+        processed_names.add(song['song_name'])
+    first_n_song = limit if first_n_song == 0 else first_n_song
+    res: List[Song] = []
+    if first_n_song > 0:
+        limit = 100 if first_n_song > 100 else first_n_song
+    while first_n_song > 0:
+        first_n_song -= limit
+        top_song_list: List[Song] = get_top_song_from_playlist(playlist_URI, offset=len(res), limit=limit, market=market)
+        res.extend(top_song_list)
+    print(f'songs from spotify: {len(res)}')
     with_lyrics: List[SongNormalised] = []
     errors = 0
-    for song in top_song_list:
+    for song in res:
+        if song[sc.SONGNAME] in processed_names:
+            continue
         try:
             lyric = get_lyrics_from_genius_url(generate_genius_url(song), title=title, one_line=one_line)
             with_lyrics.append({'song_name': song[sc.SONGNAME], 'artist_name': song[sc.ARTIST], 'lyrics': lyric})
+            print(f'{len(with_lyrics)} songs processed.')
         except Exception as e:
             errors += 1
-            print(f'Error: {e}. {errors} errors so far out of {len(with_lyrics)} songs processed. Skipping song {song[sc.SONGNAME]} by {song[sc.ARTIST]}')
-    return with_lyrics
+            print(f'Error: {e}. {errors} errors so far. Skipping song {song[sc.SONGNAME]} by {song[sc.ARTIST]}')
+    return processed_songs + with_lyrics
 
 def write_songs_to_json_file(filename, songs: List[SongNormalised]):
     path = Path('data/sample_data/', filename)
     with open(path, 'w') as f:
         json.dump(songs, f, indent=4, sort_keys=True)
 
+
 if __name__ == '__main__':
-    res = get_lyric_of_top_song('spotify:playlist:7E3uEa1emOcbZJuB8sFXeK', limit=100)
-    write_songs_to_json_file('top_100_spotify.json', res)
+    songs_filename = 'top_300_spotify.json'
+    res = get_lyric_of_top_song('spotify:playlist:7E3uEa1emOcbZJuB8sFXeK', first_n_song=350, cache_filename=songs_filename)
+    write_songs_to_json_file(songs_filename, res)
     pprint(res)
