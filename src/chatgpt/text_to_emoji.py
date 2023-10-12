@@ -14,7 +14,7 @@ def get_prompt(song):
     return (f"<s>[INST] "
             f"You're an excellent translator from text to emoji. "
             f"You know how to replace word with emoji, keeping the meaning ideally. "
-            f"Read this text. return it back, but replace each word with emoji . "
+            f"Read this text. rgeturn it back, but replace each word with emoji . "
             f"Your output should contain emojis only. "
             f"Ensure that you have only emojis in your output and don't have any alphabet characters. "
             f"Text:\n"
