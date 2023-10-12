@@ -2,41 +2,46 @@ from __future__ import annotations
 from dataclasses import dataclass
 from random import choice
 
-import streamlit as st
-from pandas import DataFrame
-from pandas import read_csv
-
 from text_to_emoji import translate_text
+from game_data_manager import DataManager
+from game_data_manager import Song
 
 STARTING_LIVES: int = 3
 OPTION_COUNT: int = 3
-CSV_MAX_ROWS: int = 1000
+BAR_COUNT: int = 3
 
 
 @dataclass
 class Guess:
-    chars: str
-    emoji: str
+    song: Song
     is_correct: bool
 
 
 @dataclass
 class Level:
-    options: list[str]
-    correct: str
-    emoji: str
+    options: list[Song]
+    correct: Song
+    bars: list[str]
+
+    def get_emoji_bars(self) -> list[str]:
+        return [translate_text(bar) for bar in self.bars]
 
     @staticmethod
-    def new_level() -> Level:
-        options: list[str] = get_options()
-        correct: str = choice(options)
-        return Level(options, correct, translate_text(correct))
+    def new_level(played_songs: list[Song] | None = None) -> Level:
+        if played_songs is None:
+            played_songs = []
+        options: list[Song] = DataManager.get().get_songs(played_songs=played_songs,
+                                                          n=OPTION_COUNT)
+        correct: Song = choice(options)
+        bars: list[str] = correct.lyrics.get_random_bars(n=BAR_COUNT)
+        return Level(options, correct, bars)
 
 
 class GameState:
 
     def __init__(self) -> None:
         self.level: Level = Level.new_level()
+        self.played_songs: list[Song] = [self.level.correct]
         self.guesses: list[Guess] = []
         self.game_over: bool = False
 
@@ -47,9 +52,9 @@ class GameState:
     def get_score(self) -> int:
         return len(list(filter(lambda guess: guess.is_correct, self.guesses)))
 
-    def guess(self, option: str) -> None:
+    def guess(self, option: Song) -> None:
         is_correct: bool = option == self.level.correct
-        guess: Guess = Guess(option, self.level.emoji, is_correct)
+        guess: Guess = Guess(option, is_correct)
         self.guesses.append(guess)
 
         if not guess.is_correct and self.get_lives() == 0:
@@ -64,21 +69,11 @@ class GameState:
         self._next_level()
 
     def _next_level(self) -> None:
-        self.level = Level.new_level()
+        self.level = Level.new_level(self.played_songs)
+        self.played_songs.append(self.level.correct)
 
     def __repr__(self) -> str:
         result: str = ""
         for attr, attr_val in self.__dict__.items():
             result += f"{attr}: {attr_val}\n"
         return result
-
-
-@st.cache_data
-def get_data() -> DataFrame:
-    data = read_csv("data/sample_data/top_10_artists_songs.csv", nrows=CSV_MAX_ROWS)
-    return data
-
-
-def get_options() -> list[str]:
-    data: DataFrame = get_data()
-    return data.sample(n=OPTION_COUNT).song_name.values

@@ -2,6 +2,8 @@ import streamlit as st
 
 import game_markdown as mark_down
 from game_state import GameState
+from game_state import Song
+from game_state import OPTION_COUNT
 
 RED_HEART_EMOJI: str = "\u2764\uFE0F"
 RETRY_LABEL: str = "Try Again!"
@@ -58,7 +60,7 @@ class Game:
         space: str = "<br />" * 3
         for guess in self.state.guesses[::-1]:
             color: str = COLOR_CORRECT if guess.is_correct else COLOR_INCORRECT
-            text: str = f"{guess.chars} <br />{guess.emoji} {space}"
+            text: str = f"{guess.song.name} : {guess.song.artist}{space}"
             guesses += mark_down.get_colored_text(text, color)
         mark_down.scroll_text(SCROLL_HEIGHT, guesses)
 
@@ -72,18 +74,20 @@ class Game:
         mark_down.separator()
 
     def _place_emoji(self) -> None:
-        mark_down.centered_title(self.state.level.emoji)
+        for emoji in self.state.level.get_emoji_bars():
+            mark_down.centered_title(emoji)
         mark_down.empty_space()
         mark_down.empty_space()
 
     def _place_options(self) -> None:
         option1_col, option2_col, option3_col = st.columns([1, 1, 1])
-        assert len(self.state.level.options) == 3
+        assert len(self.state.level.options) == OPTION_COUNT
         option1, option2, option3 = self.state.level.options
 
-        def place_option(option, col) -> None:
+        def place_option(song: Song, col) -> None:
             with col:
-                st.button(label=option, on_click=lambda: self.state.guess(option))
+                st.button(label=song.__repr__(),
+                          on_click=lambda: self.state.guess(song))
 
         place_option(option1, option1_col)
         place_option(option2, option2_col)
