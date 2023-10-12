@@ -9,6 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 
 
+
 DRY_RUN = False
 
 class SongTranslated(SongNormalised):
@@ -40,6 +41,7 @@ def process_songs_multithreaded(songs, num_threads=4):
     songs_translated = []  # List to store processed songs
     songs_processed = 0
     total_songs = len(songs)
+
     with ThreadPoolExecutor(max_workers=num_threads) as executor:
         # Submit each song for processing and store the future object
         futures = [executor.submit(process_song, song) for song in songs]
@@ -53,6 +55,7 @@ def process_songs_multithreaded(songs, num_threads=4):
                 print(f"Ignored error processing song: {e}")
             songs_processed += 1
             print(f"Processed {songs_processed}/{total_songs} songs", end="\r")
+
 
     return songs_translated
 
@@ -72,6 +75,7 @@ if __name__ == "__main__":
     num_threads = 3
 
     translated_songs = process_songs_multithreaded(songs, num_threads)
+
 
     fp = write_translated_songs_to_file(translated_songs, 'data/sample_data/top_300_spotify.json')
     print(f'Translated songs saved to: \n\t{fp}')

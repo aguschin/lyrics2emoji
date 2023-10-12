@@ -32,6 +32,7 @@ def translate_text(text):
                      {'role': 'user', 'content': get_prompt(text)}, ],
         'temperature': 0.3,
     }
+
     response = requests.post(API_ENDPOINT, json=data, headers=headers)
 
     if response.status_code == 200:
