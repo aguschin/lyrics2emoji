@@ -26,7 +26,7 @@ def empty_space() -> None:
 def scroll_text(height: int, text: str) -> None:
     html_text: str = f"""
     <center>
-    <p style="font-size:25px; font-family:verdana; line-height: 2">
+    <p style="font-size:25px; font-family:verdana">
     {text}
     </p>
     </center>

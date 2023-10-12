@@ -68,8 +68,9 @@ class Game:
 
     def place_correct_songs(self) -> None:
         correct_songs: str = ""
+        space: str = "<br />" * 3
         for song, song_emoji in self.state.correct_songs[::-1]:
-            correct_songs += f"{song} : {song_emoji} <br />"
+            correct_songs += f"{song} <br />{song_emoji}" + space
 
         mark_down.scroll_text(SCROLL_HEIGHT, correct_songs)
 
