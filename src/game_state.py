@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from random import choice
 
@@ -19,11 +20,23 @@ class Guess:
     is_correct: bool
 
 
+@dataclass
+class Level:
+    options: list[str]
+    correct: str
+    emoji: str
+
+    @staticmethod
+    def new_level() -> Level:
+        options: list[str] = get_options()
+        correct: str = choice(options)
+        return Level(options, correct, translate_text(correct))
+
+
 class GameState:
+
     def __init__(self) -> None:
-        self.options: list[str] = get_options()
-        self.correct_option: str = choice(self.options)
-        self.correct_option_emoji: str = translate_text(self.correct_option)
+        self.level: Level = Level.new_level()
         self.guesses: list[Guess] = []
         self.game_over: bool = False
 
@@ -35,27 +48,23 @@ class GameState:
         return len(list(filter(lambda guess: guess.is_correct, self.guesses)))
 
     def guess(self, option: str) -> None:
-        guess: Guess = Guess(option, self.correct_option_emoji,
-                             option == self.correct_option)
-        self.next_level(guess)
-
-    def next_level(self, guess: Guess) -> None:
+        is_correct: bool = option == self.level.correct
+        guess: Guess = Guess(option, self.level.emoji, is_correct)
         self.guesses.append(guess)
 
         if not guess.is_correct and self.get_lives() == 0:
             self.game_over = True
             return
 
-        self.options = get_options()
-        self.correct_option = choice(self.options)
-        self.correct_option_emoji = translate_text(self.correct_option)
+        self._next_level()
 
     def reset(self) -> None:
         self.game_over = False
-        self.options = get_options()
         self.guesses = []
-        self.correct_option = choice(self.options)
-        self.correct_option_emoji = translate_text(self.correct_option)
+        self._next_level()
+
+    def _next_level(self) -> None:
+        self.level = Level.new_level()
 
     def __repr__(self) -> str:
         result: str = ""

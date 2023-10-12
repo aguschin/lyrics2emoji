@@ -72,13 +72,14 @@ class Game:
         mark_down.separator()
 
     def _place_emoji(self) -> None:
-        mark_down.centered_title(self.state.correct_option_emoji)
+        mark_down.centered_title(self.state.level.emoji)
         mark_down.empty_space()
         mark_down.empty_space()
 
     def _place_options(self) -> None:
         option1_col, option2_col, option3_col = st.columns([1, 1, 1])
-        option1, option2, option3 = self.state.options
+        assert len(self.state.level.options) == 3
+        option1, option2, option3 = self.state.level.options
 
         def place_option(option, col) -> None:
             with col:
