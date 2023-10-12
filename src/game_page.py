@@ -10,7 +10,10 @@ GAME_STATE: str = "game_state"
 BEST: str = "best"
 SCROLL_HEIGHT: int = 400
 WRONG_GUESS_SIZE: int = 25
+SCORE_SIZE: int = 23
 BEST_SIZE: int = 20
+COLOR_CORRECT: str = "green"
+COLOR_INCORRECT: str = "red"
 
 
 class Game:
@@ -24,57 +27,42 @@ class Game:
 
         self.state: GameState = st.session_state.game_state
 
-    def update_best(self) -> None:
+    def play(self) -> None:
+        mark_down.centered_title(GAME_TITLE)
+
+        if self.state.game_over:
+            self._place_final_score()
+            self._place_try_again()
+            self._place_guesses()
+        else:
+            self._update_best()
+            self._place_user_stats()
+            self._place_emoji()
+            self._place_options()
+            self._place_guesses()
+
+    def _update_best(self) -> None:
         current_best: int = st.session_state[BEST]
         current_score: int = self.state.get_score()
         if current_score > current_best:
             st.session_state[BEST] = current_score
 
-    def play(self) -> None:
-        mark_down.centered_title(GAME_TITLE)
+    def _place_final_score(self) -> None:
+        best: str = f"best score: {st.session_state[BEST]}"
+        score: str = f"you got {self.state.get_score()} songs correct!"
+        mark_down.centered_title(score, size=SCORE_SIZE)
+        mark_down.centered_title(best, size=BEST_SIZE)
 
-        def place_best() -> None:
-            best: str = f"best score: {st.session_state[BEST]}"
-            mark_down.centered_title(best, size=BEST_SIZE)
-
-        if self.state.game_over:
-            self.place_wrong_songs()
-            place_best()
-            self.place_try_again()
-        else:
-            self.update_best()
-            self.place_lives_and_score()
-            self.place_emoji()
-            self.place_options()
-            self.place_correct_songs()
-
-    def place_wrong_songs(self) -> None:
-        assert len(self.state.incorrect_songs) == 3
-        wrong_song1, wrong_song2, wrong_song3 = self.state.incorrect_songs
-        wrong_col1, wrong_col2, wrong_col3 = st.columns([1, 1, 1])
-
-        def place_wrong_song(wrong_song, wrong_col) -> None:
-            with wrong_col:
-                correct_song, wrong_guess, song_emoji = wrong_song
-                mark_down.centered_title(song_emoji)
-                mark_down.centered_title(correct_song, color="green",
-                                         size=WRONG_GUESS_SIZE)
-                mark_down.centered_title(wrong_guess, color="red",
-                                         size=WRONG_GUESS_SIZE)
-
-        place_wrong_song(wrong_song1, wrong_col1)
-        place_wrong_song(wrong_song2, wrong_col2)
-        place_wrong_song(wrong_song3, wrong_col3)
-
-    def place_correct_songs(self) -> None:
-        correct_songs: str = ""
+    def _place_guesses(self) -> None:
+        guesses: str = ""
         space: str = "<br />" * 3
-        for song, song_emoji in self.state.correct_songs[::-1]:
-            correct_songs += f"{song} <br />{song_emoji}" + space
+        for guess in self.state.guesses[::-1]:
+            color: str = COLOR_CORRECT if guess.is_correct else COLOR_INCORRECT
+            text: str = f"{guess.chars} <br />{guess.emoji} {space}"
+            guesses += mark_down.get_colored_text(text, color)
+        mark_down.scroll_text(SCROLL_HEIGHT, guesses)
 
-        mark_down.scroll_text(SCROLL_HEIGHT, correct_songs)
-
-    def place_lives_and_score(self) -> None:
+    def _place_user_stats(self) -> None:
         lives_col, score_col = st.columns([1, 1])
         with lives_col:
             mark_down.centered_title(RED_HEART_EMOJI * self.state.get_lives())
@@ -83,18 +71,18 @@ class Game:
             mark_down.centered_title(str(self.state.get_score()))
         mark_down.separator()
 
-    def place_emoji(self) -> None:
+    def _place_emoji(self) -> None:
         mark_down.centered_title(self.state.correct_option_emoji)
         mark_down.empty_space()
         mark_down.empty_space()
 
-    def place_options(self) -> None:
+    def _place_options(self) -> None:
         option1_col, option2_col, option3_col = st.columns([1, 1, 1])
         option1, option2, option3 = self.state.options
 
         def place_option(option, col) -> None:
             with col:
-                st.button(label=option, on_click=lambda: self.state.next_level(option))
+                st.button(label=option, on_click=lambda: self.state.guess(option))
 
         place_option(option1, option1_col)
         place_option(option2, option2_col)
@@ -102,10 +90,11 @@ class Game:
         mark_down.empty_space()
         mark_down.empty_space()
 
-    def place_try_again(self) -> None:
+    def _place_try_again(self) -> None:
         mark_down.separator()
         _, col, __ = st.columns([2, 1, 2])
         col.button(label=RETRY_LABEL, on_click=self.state.reset)
+        mark_down.empty_space()
 
 
 Game().play()
