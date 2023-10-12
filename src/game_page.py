@@ -24,11 +24,6 @@ class Game:
 
         self.state: GameState = st.session_state.game_state
 
-    def guess(self, option: str) -> None:
-        self.state.next_level(option)
-        if self.state.game_over:
-            self.update_best()
-
     def update_best(self) -> None:
         current_best: int = st.session_state[BEST]
         current_score: int = self.state.get_score()
@@ -47,6 +42,7 @@ class Game:
             place_best()
             self.place_try_again()
         else:
+            self.update_best()
             self.place_lives_and_score()
             self.place_emoji()
             self.place_options()
@@ -97,7 +93,7 @@ class Game:
 
         def place_option(option, col) -> None:
             with col:
-                st.button(label=option, on_click=lambda: self.guess(option))
+                st.button(label=option, on_click=lambda: self.state.next_level(option))
 
         place_option(option1, option1_col)
         place_option(option2, option2_col)
