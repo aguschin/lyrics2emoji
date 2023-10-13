@@ -37,7 +37,12 @@ class Level:
         return Level(options, correct, bars)
 
 
+@dataclass(init=False, slots=True)
 class GameState:
+    level: Level
+    played_songs: list[Song]
+    guesses: list[Guess]
+    game_over: bool
 
     def __init__(self) -> None:
         self.level: Level = Level.new_level()
@@ -71,9 +76,3 @@ class GameState:
     def _next_level(self) -> None:
         self.level = Level.new_level(self.played_songs)
         self.played_songs.append(self.level.correct)
-
-    def __repr__(self) -> str:
-        result: str = ""
-        for attr, attr_val in self.__dict__.items():
-            result += f"{attr}: {attr_val}\n"
-        return result
