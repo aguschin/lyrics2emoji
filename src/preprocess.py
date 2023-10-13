@@ -44,6 +44,6 @@ def get_lyrics_first_line(lyrics: str):
     return lyrics.split('\n')[0].replace('\r', '')
 
 
-def get_lyrics_four_line(lyrics: str):
-    return " ".join(lyrics.split('\n')[0:4]).replace('\r', '')
+def get_lyrics_n_line(lyrics: str, n=1):
+    return " ".join(lyrics.split('\n')[0:n]).replace('\r', '')
 
