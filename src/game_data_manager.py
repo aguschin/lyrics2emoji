@@ -15,7 +15,7 @@ CSV_DATA: str = "data/sample_data/top_10_artists_songs.csv"
 CSV_MAX_ROWS: int = 1000
 
 
-@dataclass(slots=True, init=False)
+@dataclass(slots=True, init=False, repr=False)
 class Lyrics:
     bars: list[str]
 
@@ -30,6 +30,9 @@ class Lyrics:
         if n == 0: return []
         index_offset: int = randint(0, len(self.bars) - n)
         return self.bars[index_offset: index_offset + n]
+
+    def __repr__(self) -> str:
+        return f"{len(self.bars)}: bars"
 
 
 @dataclass(slots=True, init=False, repr=False)
