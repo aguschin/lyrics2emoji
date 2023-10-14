@@ -102,5 +102,7 @@ class DataManager:
             song: Song = choice(self.data)
             if played_songs is not None and song in played_songs:
                 continue
+            if song in songs:
+                continue
             songs.append(song)
         return songs
