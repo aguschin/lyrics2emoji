@@ -46,24 +46,19 @@ class Level:
     correct: Song
 
     @staticmethod
-    def new_level(played_songs: list[Song] | None = None) -> Level:
-        if played_songs is None:
-            played_songs = []
-        options: list[Song] = DataManager.get().get_songs(played_songs=played_songs,
-                                                          n=OPTION_COUNT)
+    def new_level() -> Level:
+        options: list[Song] = DataManager.get().get_songs(n=OPTION_COUNT)
         return Level(options, choice(options))
 
 
 @dataclass(init=False, slots=True)
 class GameState:
     level: Level
-    played_songs: list[Song]
     guesses: list[Guess]
     game_stage: GameStage
 
     def __init__(self) -> None:
         self.level: Level = Level.new_level()
-        self.played_songs: list[Song] = [self.level.correct]
         self.guesses: list[Guess] = []
         self.game_stage: GameStage = GameStage.GUESS
 
@@ -95,5 +90,4 @@ class GameState:
         self.next_level()
 
     def next_level(self) -> None:
-        self.level = Level.new_level(self.played_songs)
-        self.played_songs.append(self.level.correct)
+        self.level = Level.new_level()

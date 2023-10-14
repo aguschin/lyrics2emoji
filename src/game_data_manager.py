@@ -94,15 +94,14 @@ class DataManager:
             if not all([name, artist, lyrics, translated_lyrics]): continue
             self.data.append(Song(name, artist, lyrics, translated_lyrics))
 
-    def get_songs(self, n=1, played_songs: list[Song] | None = None) -> list[Song]:
+    def get_songs(self, n=1) -> list[Song]:
         songs: list[Song] = []
-        if played_songs is not None and len(played_songs) >= len(self.data):
+        if len(self.data) < n:
             raise Exception("ran out of songs :(")
+
         while len(songs) < n:
             song: Song = choice(self.data)
-            if played_songs is not None and song in played_songs:
-                continue
-            if song in songs:
-                continue
             songs.append(song)
+            self.data.remove(song)
+
         return songs
