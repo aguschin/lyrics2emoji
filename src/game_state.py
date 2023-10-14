@@ -2,7 +2,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from random import choice
 
-from text_to_emoji import translate_text
 from game_data_manager import DataManager
 from game_data_manager import Song
 
@@ -21,10 +20,6 @@ class Guess:
 class Level:
     options: list[Song]
     correct: Song
-    bars: list[str]
-
-    def get_emoji_bars(self) -> list[str]:
-        return [translate_text(bar) for bar in self.bars]
 
     @staticmethod
     def new_level(played_songs: list[Song] | None = None) -> Level:
@@ -32,9 +27,7 @@ class Level:
             played_songs = []
         options: list[Song] = DataManager.get().get_songs(played_songs=played_songs,
                                                           n=OPTION_COUNT)
-        correct: Song = choice(options)
-        bars: list[str] = correct.lyrics.get_random_bars(n=BAR_COUNT)
-        return Level(options, correct, bars)
+        return Level(options, choice(options))
 
 
 @dataclass(init=False, slots=True)

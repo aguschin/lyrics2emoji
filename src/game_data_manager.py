@@ -1,30 +1,39 @@
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from random import choice
 from random import randint
 
-from pandas import DataFrame
-from pandas import read_csv
-
 import streamlit as st
 
 INVALID_PATTERN: str = r"\([^)]*\)"
-CSV_DATA: str = "data/sample_data/top_10_artists_songs.csv"
-CSV_MAX_ROWS: int = 1000
+JSON_DATA: str = "data/sample_data/top_300_spotify_translated.json"
 
 
 @dataclass(slots=True, init=False, repr=False)
 class Lyrics:
     bars: list[str]
+    translated_bars: list[str]
 
-    def __init__(self, lyrics: str) -> None:
-
+    def __init__(self, lyrics: str, translated_lyrics: str) -> None:
         self.bars: list[str] = []
-        for bar in lyrics.split("\r\n"):
+        self.translated_bars: list[str] = []
+        self._load_lyrics(lyrics, translated_lyrics)
+
+    def _load_lyrics(self, lyrics: str, translated_lyrics: str) -> None:
+        for bar in translated_lyrics.split("\n"):
             if not bar: continue
+            self.translated_bars.append(bar)
+
+        for bar in lyrics.split("\n"):
+            if not bar: continue
+            if len(self.bars) == len(self.translated_bars):
+                break
             self.bars.append(bar)
+
+        assert len(self.bars) == len(self.translated_bars)
 
     def get_random_bars(self, n: int = 1) -> list[str]:
         if n == 0: return []
@@ -32,7 +41,7 @@ class Lyrics:
         return self.bars[index_offset: index_offset + n]
 
     def __repr__(self) -> str:
-        return f"{len(self.bars)}: bars"
+        return f"{len(self.bars)}: bars, {len(self.translated_bars)}: translated bars"
 
 
 @dataclass(slots=True, init=False, repr=False)
@@ -41,10 +50,11 @@ class Song:
     artist: str
     lyrics: Lyrics
 
-    def __init__(self, name: str, artist: str, lyrics: str) -> None:
+    def __init__(self, name: str, artist: str, lyrics: str,
+                 translated_lyrics: str) -> None:
         self.name: str = name
         self.artist: str = artist
-        self.lyrics: Lyrics = Lyrics(lyrics)
+        self.lyrics: Lyrics = Lyrics(lyrics, translated_lyrics)
         self.format_name()
 
     def format_name(self) -> None:
@@ -68,20 +78,21 @@ class DataManager:
 
     @staticmethod
     @st.cache_data
-    def get_data() -> DataFrame:
-        return read_csv(CSV_DATA, nrows=CSV_MAX_ROWS)
+    def get_json_data() -> list[dict[str, str]]:
+        return json.load(open(JSON_DATA))
 
     def __init__(self) -> None:
         self.data: list[Song] = []
-        self.load_data()
+        self.load_json_data()
 
-    def load_data(self) -> None:
-        data: list[Song] = []
-        for _, song in DataManager.get_data().iterrows():
-            if not all(song): continue
-            data.append(Song(*song))
-
-        self.data = data
+    def load_json_data(self) -> None:
+        for song_dict in DataManager.get_json_data():
+            name: str | None = song_dict.get("song_name")
+            artist: str | None = song_dict.get("artist_name")
+            lyrics: str | None = song_dict.get("lyrics")
+            translated_lyrics: str | None = song_dict.get("translated_lyrics")
+            if not all([name, artist, lyrics, translated_lyrics]): continue
+            self.data.append(Song(name, artist, lyrics, translated_lyrics))
 
     def get_songs(self, n=1, played_songs: list[Song] | None = None) -> list[Song]:
         songs: list[Song] = []

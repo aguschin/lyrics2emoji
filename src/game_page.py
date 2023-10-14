@@ -74,7 +74,7 @@ class Game:
         mark_down.separator()
 
     def _place_emoji(self) -> None:
-        for emoji in self.state.level.get_emoji_bars():
+        for emoji in self.state.level.correct.lyrics.translated_bars:
             mark_down.centered_title(emoji)
         mark_down.empty_space()
         mark_down.empty_space()
