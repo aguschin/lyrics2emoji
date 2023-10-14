@@ -1,9 +1,11 @@
 import streamlit as st
 
 import game_markdown as mark_down
+from game_state import GameStage
+from game_state import Guess
 from game_state import GameState
-from game_state import Song
 from game_state import OPTION_COUNT
+from game_state import Song
 
 RED_HEART_EMOJI: str = "\u2764\uFE0F"
 RETRY_LABEL: str = "Try Again!"
@@ -16,6 +18,10 @@ SCORE_SIZE: int = 23
 BEST_SIZE: int = 20
 COLOR_CORRECT: str = "green"
 COLOR_INCORRECT: str = "red"
+TIME_DELAY: int = 2
+BARS_SIZE: int = 30
+NEXT_LEVEL_LABEL: str = "next level"
+ANSWER_SIZE: int = 20
 
 
 class Game:
@@ -32,16 +38,33 @@ class Game:
     def play(self) -> None:
         mark_down.centered_title(GAME_TITLE)
 
-        if self.state.game_over:
+        stage: GameStage = self.state.game_stage
+        if stage is GameStage.GUESS:
+            self._update_best()
+            self._place_user_stats()
+            self._place_bars(emoji=True)
+            self._place_options()
+            self._place_guesses()
+
+        elif stage is GameStage.RESULT:
+            self._place_user_stats()
+            self._place_bars(emoji=False)
+            self._place_next_level()
+            self._place_guesses()
+
+        elif stage is GameStage.GAME_OVER:
             self._place_final_score()
             self._place_try_again()
             self._place_guesses()
         else:
-            self._update_best()
-            self._place_user_stats()
-            self._place_emoji()
-            self._place_options()
-            self._place_guesses()
+            raise Exception(f"unsupported game stage {stage}")
+
+    def _place_next_level(self) -> None:
+        mark_down.separator()
+        _, col, __ = st.columns([2, 1, 2])
+        label: str = RETRY_LABEL if self.state.get_lives() == 0 else NEXT_LEVEL_LABEL
+        col.button(label=label, on_click=self.state.update_stage)
+        mark_down.empty_space()
 
     def _update_best(self) -> None:
         current_best: int = st.session_state[BEST]
@@ -73,13 +96,33 @@ class Game:
             mark_down.centered_title(str(self.state.get_score()))
         mark_down.separator()
 
-    def _place_emoji(self) -> None:
-        for emoji in self.state.level.correct.lyrics.translated_bars:
-            mark_down.centered_title(emoji)
-        mark_down.empty_space()
-        mark_down.empty_space()
+    def _place_bars(self, *, emoji: bool) -> None:
+        bars: list[str] = self.state.level.correct.lyrics.bars
+        emoji_bars: list[str] = self.state.level.correct.lyrics.translated_bars
+        if emoji:
+            for emoji_bar in emoji_bars:
+                mark_down.centered_title(emoji_bar, size=BARS_SIZE)
+            mark_down.empty_space()
+            mark_down.empty_space()
+
+        else:
+            guess: Guess = self.state.get_latest_guess()
+            color: str = COLOR_CORRECT if guess.is_correct else COLOR_INCORRECT
+
+            for bar, emoji_bar in zip(bars, emoji_bars):
+                bar_col, emoji_col = st.columns([1, 1])
+                with bar_col:
+                    mark_down.centered_title(bar, color=color, size=ANSWER_SIZE)
+                with emoji_col:
+                    mark_down.centered_title(emoji_bar, size=ANSWER_SIZE)
+
+            mark_down.empty_space()
+            mark_down.centered_title(self.state.level.correct.__repr__(), color=color,
+                                     size=ANSWER_SIZE)
+            mark_down.empty_space()
 
     def _place_options(self) -> None:
+
         option1_col, option2_col, option3_col = st.columns([1, 1, 1])
         assert len(self.state.level.options) == OPTION_COUNT
         option1, option2, option3 = self.state.level.options
