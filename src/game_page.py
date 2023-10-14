@@ -59,11 +59,15 @@ class Game:
         else:
             raise Exception(f"unsupported game stage {stage}")
 
+    def _next_level(self) -> None:
+        self.state.update_stage()
+        self.state.next_level()
+
     def _place_next_level(self) -> None:
         mark_down.separator()
         _, col, __ = st.columns([2, 1, 2])
         label: str = RETRY_LABEL if self.state.get_lives() == 0 else NEXT_LEVEL_LABEL
-        col.button(label=label, on_click=self.state.update_stage)
+        col.button(label=label, on_click=self._next_level)
         mark_down.empty_space()
 
     def _update_best(self) -> None:

@@ -88,13 +88,12 @@ class GameState:
         self.guesses.append(Guess(option, option == self.level.correct))
         self.update_stage()
         if self.game_stage is GameStage.GAME_OVER: return
-        self._next_level()
 
     def reset(self) -> None:
         self.update_stage()
         self.guesses = []
-        self._next_level()
+        self.next_level()
 
-    def _next_level(self) -> None:
+    def next_level(self) -> None:
         self.level = Level.new_level(self.played_songs)
         self.played_songs.append(self.level.correct)
