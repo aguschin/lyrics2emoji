@@ -5,24 +5,13 @@ from preprocess import embed, EMBEDDING_DIMENSION
 
 
 # lyrics source and column of song name
-df = pd.read_json('../data/sample_data/top_10_spotify_translated.json')
+df = pd.read_json('../data/sample_data/top_300_spotify_translated.json')
 song_col = 'song_name'
 
-# parser, model, tokenizer
-tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-model = DistilBertModel.from_pretrained("distilbert-base-uncased")
-embedding_dimension = model.config.hidden_size
-
 def get_sub_lyrics(lyrics):
-    return lyrics[:min(800, len(lyrics))].strip().replace('\r', '').replace('\n', ' ')
-
-def embed(value: str):
-    encoded_input = tokenizer(value, return_tensors='pt')
-    output = model(**encoded_input)
-    res = output.last_hidden_state.squeeze(0)[-1].detach().numpy().reshape(1, -1)
-
-    res = res / np.linalg.norm(res)
-    return res
+    # return lyrics[:min(800, len(lyrics))].strip().replace('\r', '').replace('\n', ' ')
+    # return lyrics.split('\n')[0].replace('\r', '')
+    return " ".join(lyrics.split('\n')[0:4]).replace('\r', '')
 
 df['lyrics'] = df['lyrics'].apply(get_sub_lyrics)
 
@@ -32,11 +21,7 @@ for text in df['lyrics'].values:
 
 
 # create annoy index for faster search
-annoy_index = AnnoyIndex(EMBEDDING_DIMENSION, 'euclidean')
-for i, vectorized_lyric in enumerate(vectorized_lyrics):
-    annoy_index.add_item(i, vectorized_lyric)
-annoy_index.build(10)
-annoy_index = AnnoyIndex(embedding_dimension, 'dot')
+annoy_index = AnnoyIndex(EMBEDDING_DIMENSION, 'dot')
 for i, vector in enumerate(vectorized_lyrics):
     vector = vector.squeeze()
     vector = vector / np.linalg.norm(vector)

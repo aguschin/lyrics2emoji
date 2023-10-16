@@ -1,4 +1,5 @@
 import spacy
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from transformers import DistilBertTokenizer, DistilBertModel
 
@@ -37,8 +38,10 @@ def uni_to_emo(unicodes):
 def embed(value: str):
     encoded_input = tokenizer(value, return_tensors='pt')
     output = model(**encoded_input)
-    return output.last_hidden_state.squeeze(0)[-1].detach().numpy().reshape(1, -1)
+    res = output.last_hidden_state.squeeze(0)[-1].detach().numpy().reshape(1, -1)
 
+    res = res / np.linalg.norm(res)
+    return res
 
 def get_lyrics_first_line(lyrics: str):
     return lyrics.split('\n')[0].replace('\r', '')
