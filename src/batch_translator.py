@@ -5,15 +5,12 @@ from typing import List
 from chatgpt.text_to_emoji import translate_text
 from spotify import SongNormalised
 from concurrent.futures import ThreadPoolExecutor
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import retry, stop_after_attempt
 
-
-
+from src.song_types import SongTranslated
 
 DRY_RUN = False
 
-class SongTranslated(SongNormalised):
-    translated_lyrics: str
 
 def load_raw_songs(filename) -> List[SongNormalised]:
     """Returns list of texts from json file."""
