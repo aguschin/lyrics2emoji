@@ -1,7 +1,8 @@
 from __future__ import annotations
+
+from dataclasses import dataclass
 from enum import Enum
 from enum import auto
-from dataclasses import dataclass
 from random import choice
 
 from game_data_manager import DataManager
@@ -13,12 +14,17 @@ BAR_COUNT: int = 3
 
 
 class GameStage(Enum):
+    MENU = auto()
     GUESS = auto()
     RESULT = auto()
     GAME_OVER = auto()
 
     def next(self, is_correct: bool, lives: int) -> GameStage:
-        if self is GameStage.GUESS:
+
+        if self is GameStage.MENU:
+            return GameStage.GUESS
+
+        elif self is GameStage.GUESS:
             return GameStage.RESULT
 
         elif self is GameStage.RESULT:
@@ -28,7 +34,7 @@ class GameStage(Enum):
             return GameStage.GUESS
 
         elif self is GameStage.GAME_OVER:
-            return GameStage.GUESS
+            return GameStage.MENU
 
         else:
             raise Exception(f"unsupported game stage {self}")
@@ -60,7 +66,7 @@ class GameState:
     def __init__(self) -> None:
         self.level: Level = Level.new_level()
         self.guesses: list[Guess] = []
-        self.game_stage: GameStage = GameStage.GUESS
+        self.game_stage: GameStage = GameStage.MENU
 
     def get_latest_guess(self) -> Guess:
         if len(self.guesses) == 0:
@@ -79,13 +85,17 @@ class GameState:
         self.game_stage = self.game_stage.next(self.get_latest_guess().is_correct,
                                                self.get_lives())
 
+    def is_dead(self) -> bool:
+        return self.get_lives() == 0
+
+    def set_stage(self, stage: GameStage) -> None:
+        self.game_stage = stage
+
     def guess(self, option: Song) -> None:
         self.guesses.append(Guess(option, option == self.level.correct))
-        self.update_stage()
-        if self.game_stage is GameStage.GAME_OVER: return
+        self.set_stage(GameStage.RESULT)
 
     def reset(self) -> None:
-        self.update_stage()
         self.guesses = []
         self.next_level()
 
