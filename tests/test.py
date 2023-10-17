@@ -5,7 +5,8 @@ import logging
 from sklearn.metrics.pairwise import cosine_similarity
 
 sys.path.append("src")
-from song_search import embed, find_nearest_song_annoy, lyrics_pre_process
+from preprocess import get_lyrics_first_line, embed
+from song_search import find_nearest_song_annoy
 from text_to_emoji import translate_text
 
 emojis = pd.read_csv('data/emoji.csv')
@@ -19,7 +20,7 @@ def measure_accuracy(lyrics, n=100, convert2emoji=False):
     matched = 0
     for i in range(n):
         match = lyrics['song_name'].iloc[i]
-        text = lyrics_pre_process(lyrics['lyrics'][i])
+        text = get_lyrics_first_line(lyrics['lyrics'][i])
         if convert2emoji:
             text = translate_text(text)
         guess = find_nearest_song_annoy(text)[0]
@@ -31,7 +32,7 @@ def measure_accuracy(lyrics, n=100, convert2emoji=False):
 def measure_similarity(lyrics, n=100):
     similarity = 0
     for i in range(n):
-        text = lyrics_pre_process(lyrics['lyrics'][i])
+        text = get_lyrics_first_line(lyrics['lyrics'][i])
         emoji_embed = embed(translate_text(text))
         text_embed = embed(text)
         similarity += cosine_similarity(text_embed, emoji_embed)
@@ -56,4 +57,6 @@ class TestFunctionality:
         accuracy = measure_accuracy(lyrics,convert2emoji=True)
         logging.critical(f'accuracy: {accuracy}%')
         assert accuracy >= accuracy_threshold, "accuracy is lower than acceptable value"
+
+
 
