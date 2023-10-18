@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
-from typing import List, TypedDict
+from typing import List, TypedDict, Callable, Optional
+import spacy
+
 
 import decouple
 import openai
@@ -38,13 +40,16 @@ def write_songs_with_embeddings_to_file(songs: List[SongWithEmbedding], raw_file
     return filepath
 
 
-def process_songs(songs):
+def process_songs(songs, cleaner: Optional[Callable[[str], str]] = None):
     with_embeddings: List[SongWithEmbedding] = []
     songs_processed = 0
     songs_with_error = 0
     for song in songs:
         try:
-            lyrics_embedding = get_embedding(song['lyrics'])
+            lyrics = song['lyrics']
+            if cleaner:
+                lyrics = cleaner(lyrics)
+            lyrics_embedding = get_embedding(lyrics)
             lyrics_translated_embedding = get_embedding(song['translated_lyrics'])
         except Exception as e:
             songs_with_error += 1
@@ -59,18 +64,32 @@ def process_songs(songs):
     return with_embeddings
 
 
+
+nlp = spacy.load("en_core_web_sm")
+
+
+def clean_text(lyric):
+    doc = nlp(lyric)
+    pos_tags = ['AUX', 'INTJ', 'PROPN', 'PUNCT', 'SCONJ', 'SYM', 'X']
+    words = [token.text for token in doc if token.pos_ not in pos_tags]  # filter words
+    lyric = ' '.join(words).split('\n')  # make full string
+    lyric = [i.strip() for i in lyric if len(i) > 15]  # clear small lines
+    lyric = '\n'.join(lyric).split('\n')[:4]  # get the first 4 lines only
+    lyric = '\n'.join(lyric)  # completed string
+
+    return lyric
+
 if __name__ == "__main__":
-    if __name__ == "__main__":
-        # Replace this with your list of songs
-        songs_raw = load_raw_songs('data/sample_data/top_300_spotify_translated.json')
-        songs = [s for s in songs_raw if s["lyrics"]] # Filter out songs with no lyrics
+    # Replace this with your list of songs
+    songs_raw = load_raw_songs('data/sample_data/top_300_spotify_translated.json')
+    songs = [s for s in songs_raw if s["lyrics"]] # Filter out songs with no lyrics
 
-        converted_songs = process_songs(songs)
+    converted_songs = process_songs(songs, cleaner=clean_text)
 
-        fp = write_songs_with_embeddings_to_file(converted_songs, 'data/sample_data/top_300_spotify.json')
-        print(f'Translated songs saved to: \n\t{fp}')
-        for song in converted_songs:
-            print(song['translated_lyrics'])
-            print('\n'.join(song['lyrics'].split('\n')[0:4]))
-            print()
+    fp = write_songs_with_embeddings_to_file(converted_songs, 'data/sample_data/top_300_spotify.json')
+    print(f'Translated songs saved to: \n\t{fp}')
+    for song in converted_songs:
+        print(song['translated_lyrics'])
+        print('\n'.join(song['lyrics'].split('\n')[0:4]))
+        print()
 
