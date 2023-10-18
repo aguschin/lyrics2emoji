@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from annoy import AnnoyIndex
 from preprocess import embed, EMBEDDING_DIMENSION
+import spacy
+from spacymoji import Emoji
 
 
 # lyrics source and column of song name
@@ -28,9 +30,6 @@ def find_nearest_song_annoy(emojis, n=1):
 
 
 def index_post_process(df, input_emojis, idx, len_diff_threshold=2):
-    import spacy
-    from spacymoji import Emoji
-
     new_idx = []
     nlp = spacy.load("en_core_web_sm")
     emoji = Emoji(nlp)
@@ -50,16 +49,30 @@ def index_post_process(df, input_emojis, idx, len_diff_threshold=2):
     print('emoji count', count_emojis)
 
     for id in idx:
-        lyrics = df['lyrics'].iloc[id].split('\n')
+        lyrics = clean_text(df['lyrics'].iloc[id]).split('\n')
         count_words = list(map(lambda x: len(x.split()), lyrics))
         if all(list(map(lambda x: abs(x[0]-x[1]) <= len_diff_threshold, zip(count_words, count_emojis)))):
             new_idx.append(id)
 
     return new_idx
 
+
+
+def clean_text(lyric):
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(lyric)
+    pos_tags = ['AUX', 'INTJ', 'PROPN', 'PUNCT', 'SCONJ', 'SYM', 'X']
+    words = [token.text for token in doc if token.pos_ not in pos_tags]  # filter words
+    lyric = ' '.join(words).split('\n')  # make full string
+    lyric = [i.strip() for i in lyric if len(i) > 15]  # clear small lines
+    lyric = '\n'.join(lyric).split('\n')[:4]  # get the first 4 lines only
+    lyric = '\n'.join(lyric)  # completed string
+    return lyric
+
+
 if __name__ == '__main__':
 
-    df = pd.read_json('data/sample_data/top_300_spotify_with_embeddings.json')
+    df = pd.read_json('../data/sample_data/top_300_spotify_with_embeddings.json')
     emojis_emb = df['translated_lyrics_embedding'].values
 
 
