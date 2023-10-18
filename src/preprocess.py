@@ -7,7 +7,6 @@ from transformers import DistilBertTokenizer, DistilBertModel
 nlp = spacy.load("en_core_web_sm")
 tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
 model = DistilBertModel.from_pretrained("distilbert-base-uncased")
-# EMBEDDING_DIMENSION = model.config.hidden_size
 EMBEDDING_DIMENSION = 1536
 
 
