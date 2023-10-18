@@ -19,26 +19,6 @@ class GameStage(Enum):
     RESULT = auto()
     GAME_OVER = auto()
 
-    def next(self, is_correct: bool, lives: int) -> GameStage:
-
-        if self is GameStage.MENU:
-            return GameStage.GUESS
-
-        elif self is GameStage.GUESS:
-            return GameStage.RESULT
-
-        elif self is GameStage.RESULT:
-            if not is_correct and lives == 0:
-                return GameStage.GAME_OVER
-
-            return GameStage.GUESS
-
-        elif self is GameStage.GAME_OVER:
-            return GameStage.MENU
-
-        else:
-            raise Exception(f"unsupported game stage {self}")
-
 
 @dataclass
 class Guess:
@@ -80,10 +60,6 @@ class GameState:
 
     def get_score(self) -> int:
         return len(list(filter(lambda guess: guess.is_correct, self.guesses)))
-
-    def update_stage(self) -> None:
-        self.game_stage = self.game_stage.next(self.get_latest_guess().is_correct,
-                                               self.get_lives())
 
     def is_dead(self) -> bool:
         return self.get_lives() == 0
