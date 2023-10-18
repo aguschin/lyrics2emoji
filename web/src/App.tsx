@@ -3,12 +3,11 @@ import styled from 'styled-components';
 import { GrSpotify } from 'react-icons/gr';
 import { Layout } from './components/Layout';
 import LoginScreen from './components/LoginScreen';
-
+//import test.JS 
 
 
 // TODO: add filter for 30 days, 6 months, all time
 // TODO: add filter for amount of songs (10, 20, 30, 40, 50)
-
 const App = () => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [user, setUser] = useState<any>({});
@@ -82,7 +81,7 @@ const App = () => {
 
     getUser();
   }, [accessToken, user]);
-
+  
   useEffect(() => {
     const getData = (type = 'artists', term = 'short', amount = 10) => {
       if (accessToken && !user.name) {
@@ -159,11 +158,32 @@ const App = () => {
               ))}
             </ol>
           </Column>
+          <Column>
+            <h2>Your emojis</h2>
+            <ol>
+              {emojis.map((emoji) => (
+                <li key={emoji}>{emoji}</li>
+              ))}
+            </ol>
+          </Column>
         </Grid>
       )}
     </Layout>
   );
 };
+
+const emojis = [
+  '🔗👴   👴',
+  '🦵🧠🌅🪶',
+  '🧾👨🐂👨💭',
+  '👨🧂👨🧾🔗👴',
+  '🪒🏥',
+];
+//we take the top 20 artists and tracks and convert them to emojis with python file
+//then we take the output and put it in the array below
+
+
+
 
 const Button = styled.button`
   background: transparent;

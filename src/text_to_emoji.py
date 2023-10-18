@@ -14,11 +14,11 @@ strings of emojis
 """
 
 # emoji source and column of emoji
-df = pd.read_csv('data/emoji.csv')
+df = pd.read_csv('C:/Users/blackfish/OneDrive/Desktop/gitrepos/lyrics2emoji/src/emoji.csv')
 emo_col = 'emoji'
 
 # embedding of each emoji name
-vectorized_name = np.load('data/emoji_name_vectorized.npy')
+vectorized_name = np.load('C:/Users/blackfish/OneDrive/Desktop/gitrepos/lyrics2emoji/data/emoji_name_vectorized.npy')
 
 # parser, model, tokenizer
 nlp = spacy.load("en_core_web_sm")

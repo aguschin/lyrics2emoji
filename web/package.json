@@ -16,8 +16,7 @@
     "react-icons": "^3.10.0",
     "react-scripts": "3.4.1",
     "styled-components": "^5.1.1",
-    "typescript": "~3.7.2",
-    "react-bootstrap": "^1.0.1"
+    "typescript": "~3.7.2"
   },
   "scripts": {
     "start": "react-scripts --openssl-legacy-provider start",
@@ -63,5 +62,6 @@
     "prettier": "^2.0.5",
     "prettier-eslint": "^10.1.1",
     "prettier-eslint-cli": "^5.0.0"
-  }
+  },
+  "type": "module"
 }
