@@ -9,8 +9,6 @@ df = pd.read_json('../data/sample_data/top_300_spotify_with_embeddings.json')
 song_col = 'song_name'
 
 def get_sub_lyrics(lyrics):
-    # return lyrics[:min(800, len(lyrics))].strip().replace('\r', '').replace('\n', ' ')
-    # return lyrics.split('\n')[0].replace('\r', '')
     return " ".join(lyrics.split('\n')[0:4]).replace('\r', '')
 
 # df['lyrics'] = df['lyrics'].apply(get_sub_lyrics)
