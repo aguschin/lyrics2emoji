@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import streamlit as st
+from pandas import DataFrame
 
 import game_markdown as mark_down
 from game_database import GameDB
@@ -12,7 +13,9 @@ from game_state import OPTION_COUNT
 from game_state import Song
 
 RED_HEART_EMOJI: str = "\u2764\uFE0F"
+DESCRIPTION: str = "Guess as many <br /> songs as you can"
 RETRY_LABEL: str = "Try Again!"
+PLAY: str = "play!"
 GAME_TITLE: str = "Lyrics-2-Emoji"
 GAME_STATE: str = "game_state"
 NEXT_LEVEL_LABEL: str = "next level"
@@ -22,14 +25,20 @@ DATABASE: str = "database"
 USERNAME: str = "username"
 SCORE: str = "score"
 DATETIME: str = "datetime"
+ID: str = "_id"
 CONTINUE: str = "continue"
 SCORE_SUBMITTED: str = "score_submitted"
+LEADERBOARDS: str = "Leaderboards"
+MENU: str = "menu"
+SUBMIT_SCORE: str = "submit score"
+LEADERBOARD_CAPACITY: int = 10
 SCROLL_HEIGHT: int = 400
 WRONG_GUESS_SIZE: int = 25
 SCORE_SIZE: int = 23
 TIME_DELAY: int = 2
 BARS_SIZE: int = 30
 ANSWER_SIZE: int = 20
+DESCRIPTION_SIZE: int = 35
 
 
 class Game:
@@ -59,8 +68,15 @@ class Game:
         stage: GameStage = self.state.game_stage
         if stage is GameStage.MENU:
             self._place_title()
-            self._place_leaderboards()
-            self._place_play_game()
+            mark_down.empty_space()
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                self._place_leaderboards()
+
+            with col2:
+                mark_down.centered_title(DESCRIPTION, size=DESCRIPTION_SIZE)
+                mark_down.empty_space()
+                self._place_play_game()
 
         elif stage is GameStage.GUESS:
             self._place_user_stats()
@@ -76,34 +92,38 @@ class Game:
 
         elif stage is GameStage.GAME_OVER:
             self._place_final_score()
-            self._place_submit_score()
             col1, col2 = st.columns([1, 1])
             with col1:
                 self._place_leaderboards()
+                self._place_submit_score()
+
             with col2:
                 self._place_guesses()
 
-            self._place_retry()
+            mark_down.separator()
+            self._place_back_to_menu()
         else:
             raise Exception(f"unsupported game stage {stage}")
 
     def _place_title(self) -> None:
         mark_down.centered_title(self.title)
 
+    def _place_back_to_menu(self):
+        _, col, __ = st.columns([2, 1, 2])
+        col.button(label=MENU, on_click=self._back_to_menu)
+        mark_down.empty_space()
+
     def _place_submit_score(self) -> None:
         if st.session_state.score_submitted:
             return
 
-        col1, col2 = st.columns([1, 1])
-
-        with col1:
+        col, _ = st.columns([1, 1])
+        with col:
             st.text_input(label=USERNAME, key=USERNAME)
-
-        with col2:
-            st.button(label="submit score", on_click=self._submit_score)
+        # FIXME: if you spam this button we will get many duplicate submissions
+        st.button(label=SUBMIT_SCORE, on_click=self._submit_score)
 
     def _submit_score(self) -> None:
-        # FIXME: can cause duplicated scores
         score: Score = Score(
             **{USERNAME: st.session_state.username, SCORE: self.state.get_score(),
                DATETIME: datetime.now().isoformat()})
@@ -111,18 +131,16 @@ class Game:
         self.game_db.score().insert_one(score)
 
     def _place_leaderboards(self) -> None:
-        scores: list[Score] = list(self.game_db.score().find())
+        scores: list[Score] = list(self.game_db.score().find())[:LEADERBOARD_CAPACITY]
         scores.sort(key=lambda score: score[SCORE], reverse=True)
-
-        for user_score in scores:
-            val: int = user_score[SCORE]
-            name: str = user_score[USERNAME]
-            st.write(f"{val} : {name}")
+        # FIXME: will display multiple scores from the same user
+        st.subheader(LEADERBOARDS)
+        if not scores: return
+        st.dataframe(DataFrame(scores).drop([DATETIME, ID], axis=1))
 
     def _place_play_game(self) -> None:
-        mark_down.separator()
-        _, col, __ = st.columns([2, 1, 2])
-        col.button(label="play!",
+        _, col, _ = st.columns([1, 1, 1])
+        col.button(label=PLAY,
                    on_click=lambda: self.state.set_stage(GameStage.GUESS))
         mark_down.empty_space()
 
@@ -143,6 +161,7 @@ class Game:
     def _place_final_score(self) -> None:
         score: str = f"you got {self.state.get_score()} songs correct!"
         mark_down.centered_title(score, size=SCORE_SIZE)
+        mark_down.separator()
 
     def _place_guesses(self) -> None:
         guesses: str = ""
@@ -204,16 +223,10 @@ class Game:
         mark_down.empty_space()
         mark_down.empty_space()
 
-    def _retry(self) -> None:
-        self.state.set_stage(GameStage.GUESS)
+    def _back_to_menu(self) -> None:
+        self.state.set_stage(GameStage.MENU)
         self.state.reset()
         st.session_state.score_submitted = False
-
-    def _place_retry(self) -> None:
-        mark_down.separator()
-        _, col, __ = st.columns([2, 1, 2])
-        col.button(label=RETRY_LABEL, on_click=self._retry)
-        mark_down.empty_space()
 
 
 Game().play()
