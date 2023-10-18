@@ -7,10 +7,6 @@ from preprocess import embed, EMBEDDING_DIMENSION
 # lyrics source and column of song name
 df = pd.read_json('../data/sample_data/top_300_spotify_with_embeddings.json')
 song_col = 'song_name'
-
-def get_sub_lyrics(lyrics):
-    return " ".join(lyrics.split('\n')[0:4]).replace('\r', '')
-
 vectorized_lyrics = df['lyrics_embedding'].values
 
 # create annoy index for faster search
@@ -19,8 +15,6 @@ for i, vector in enumerate(vectorized_lyrics):
     annoy_index.add_item(i, vector)
 annoy_index.build(10)
 
-def lyrics_pre_process(lyrics: str):
-    return lyrics.split('\n')[0].replace('\r', '')
 
 def find_nearest_song_annoy(emojis, n=1):
     """
@@ -33,7 +27,7 @@ def find_nearest_song_annoy(emojis, n=1):
     return idx
 
 
-def post_process(df, input_emojis, idx, len_diff_threshold=2):
+def index_post_process(df, input_emojis, idx, len_diff_threshold=2):
     import spacy
     from spacymoji import Emoji
 
@@ -58,7 +52,6 @@ def post_process(df, input_emojis, idx, len_diff_threshold=2):
     for id in idx:
         lyrics = df['lyrics'].iloc[id].split('\n')
         count_words = list(map(lambda x: len(x.split()), lyrics))
-
         if all(list(map(lambda x: abs(x[0]-x[1]) <= len_diff_threshold, zip(count_words, count_emojis)))):
             new_idx.append(id)
 
@@ -75,7 +68,7 @@ if __name__ == '__main__':
     for i in range(10):
         input_emoji = emojis_emb[i]
         guess = find_nearest_song_annoy(input_emoji, 10000)
-        new_index = post_process(df, df.iloc[i]['translated_lyrics'], guess, 4)
+        new_index = index_post_process(df, df.iloc[i]['translated_lyrics'], guess, 4)
 
         print('------------------------------')
         print('word count ', list(map(lambda x:len(x.replace('\r', '').split()), df['lyrics'][i].split('\n')[0:4])))
