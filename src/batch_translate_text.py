@@ -32,21 +32,25 @@ def batch_translate_texts(songs: List[Song]):
     """Returns list of texts translated to emojis."""
     res = []
     for song in songs:
-        res.append({'title': song.title, 'text': translate_text(song.text)})
+        res.append({"title": song.title, "text": translate_text(song.text)})
     return res
 
 
 def load_texts_from_file(filename):
     """Returns list of texts from json file."""
     file = Path(filename)
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         items = json.load(f)
-    return [Song(text=song['text'], title=song['title']) for song in items if song.get('text')]
+    return [
+        Song(text=song["text"], title=song["title"])
+        for song in items
+        if song.get("text")
+    ]
 
 
 def save_texts_to_file(texts: List[Dict], original_filename: str):
-    filepath = Path(original_filename.replace('.json', '_translated.json'))
-    with open(filepath, 'w') as f:
+    filepath = Path(original_filename.replace(".json", "_translated.json"))
+    with open(filepath, "w") as f:
         json.dump(texts, f)
     return filepath
 
@@ -58,7 +62,7 @@ def translate_given_json_file(filename):
     return filepath
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     given_file_name = argv[1]
     result_path = translate_given_json_file(given_file_name)
-    print(f'Translated texts saved to: \n\t{result_path}')
+    print(f"Translated texts saved to: \n\t{result_path}")

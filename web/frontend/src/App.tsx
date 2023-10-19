@@ -3,10 +3,10 @@ import styled from 'styled-components';
 import { GrSpotify } from 'react-icons/gr';
 import { Layout } from './components/Layout';
 import LoginScreen from './components/LoginScreen';
+import Axios from 'axios';
 
 // TODO: add filter for 30 days, 6 months, all time
 // TODO: add filter for amount of songs (10, 20, 30, 40, 50)
-
 const App = () => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [user, setUser] = useState<any>({});
@@ -24,6 +24,26 @@ const App = () => {
       )}&response_type=token&show_dialog=true`;
     }
   };
+  const [emojies, setEmojies] = useState<any[]>();
+
+  const [Name, setName] = useState<string>("")
+  const [Age, setAge] = useState<string>("")
+  const [date, setDate] = useState<string>("")
+  const [programming, setprogramming] = useState<string>("")
+
+  useEffect(() => {
+    // Using fetch to fetch the api from 
+    // flask server it will be redirected to proxy
+    // use async 
+    const fetchData = async () => {
+      const results = await Axios.get("/data");
+      setName(results.data.Name);
+      setAge(results.data.Age);
+      setDate(results.data.Date);
+      setprogramming(results.data.programming);
+    }
+    fetchData();
+  }, [])
 
   useEffect(() => {
     const savedToken = localStorage.getItem('spotify_access_token');
@@ -80,6 +100,27 @@ const App = () => {
 
     getUser();
   }, [accessToken, user]);
+
+  useEffect(() => {
+    const getEmojies = () => {
+      //if tracks exist send get request to flask server for emojis with track names 
+      if (tracks) {
+        fetch('/emojies', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ tracks }),
+        })
+          .then((res: any) => res.json())
+          .then((res) => {
+            setEmojies(res);
+          })
+          .catch((err: string) => console.error('Oh no!', err));
+      }
+    }
+    getEmojies();
+  }, [tracks]);
 
   useEffect(() => {
     const getData = (type = 'artists', term = 'short', amount = 10) => {
@@ -151,10 +192,18 @@ const App = () => {
             <ol>
               {tracks.map((track) => (
                 <li key={track.id}>
-                  <strong>{track.name}</strong> by {track.artists[0].name}
+                  <strong>{track.name}</strong>
                 </li>
               ))}
             </ol>
+          </Column>
+          <Column>
+            <h2>Your emojies!</h2>
+            {emojies?.map((emojies) => (
+              <li key={emojies}>
+                <strong>{emojies}</strong>
+              </li>
+            ))}
           </Column>
         </Grid>
       )}

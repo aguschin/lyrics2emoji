@@ -32,9 +32,11 @@ class GameState:
         return translate_text(self.correct_option)
 
     def __repr__(self) -> str:
-        return f"words: {self.options} \ncorrect: {self.correct_option} " \
-               f"\ncorrect songs: {self.correct_songs}\nscore:" \
-               f" {self.score} \ngame over: {self.game_over}"
+        return (
+            f"words: {self.options} \ncorrect: {self.correct_option} "
+            f"\ncorrect songs: {self.correct_songs}\nscore:"
+            f" {self.score} \ngame over: {self.game_over}"
+        )
 
 
 @st.cache_data

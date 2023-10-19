@@ -18,13 +18,16 @@ def guess(option: str) -> None:
 
 
 def centered_title(title):
-    st.markdown("""
+    st.markdown(
+        """
         <style>
         .centered-title {
             text-align: center;
         }
         </style>
-        """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True,
+    )
     st.markdown(f"<h1 class='centered-title'>{title}</h1>", unsafe_allow_html=True)
 
 
