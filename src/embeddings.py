@@ -1,13 +1,12 @@
 import json
 from pathlib import Path
-from typing import List, TypedDict, Callable, Optional
-import spacy
-
+from typing import List, Callable, Optional
 
 import decouple
 import openai
 
 from song_types import SongTranslated
+from src.utils_clean_text import clean_text
 
 openai.api_key = decouple.config('OPENAI_API_KEY')
 
@@ -63,21 +62,6 @@ def process_songs(songs, cleaner: Optional[Callable[[str], str]] = None):
     print(f"Processed {songs_processed}/{len(songs)} songs with {songs_with_error} errors")
     return with_embeddings
 
-
-
-nlp = spacy.load("en_core_web_sm")
-
-
-def clean_text(lyric):
-    doc = nlp(lyric)
-    pos_tags = ['AUX', 'INTJ', 'PROPN', 'PUNCT', 'SCONJ', 'SYM', 'X']
-    words = [token.text for token in doc if token.pos_ not in pos_tags]  # filter words
-    lyric = ' '.join(words).split('\n')  # make full string
-    lyric = [i.strip() for i in lyric if len(i) > 15]  # clear small lines
-    lyric = '\n'.join(lyric).split('\n')[:4]  # get the first 4 lines only
-    lyric = '\n'.join(lyric)  # completed string
-
-    return lyric
 
 if __name__ == "__main__":
     # Replace this with your list of songs
