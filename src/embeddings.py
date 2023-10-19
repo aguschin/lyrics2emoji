@@ -8,14 +8,12 @@ import openai
 from song_types import SongTranslated
 from src.utils_clean_text import clean_text
 
-openai.api_key = decouple.config('OPENAI_API_KEY')
+openai.api_key = decouple.config("OPENAI_API_KEY")
+
 
 def get_embedding(text):
-    response = openai.Embedding.create(
-        input=text,
-        model="text-embedding-ada-002"
-    )
-    return response['data'][0]['embedding']
+    response = openai.Embedding.create(input=text, model="text-embedding-ada-002")
+    return response["data"][0]["embedding"]
 
 
 class SongWithEmbedding(SongTranslated):
@@ -27,14 +25,16 @@ def load_raw_songs(filename) -> List[SongTranslated]:
     """Returns list of texts from json file."""
     file = Path(filename)
     items: List[SongTranslated] = []
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         items = json.load(f)
     return items
 
 
-def write_songs_with_embeddings_to_file(songs: List[SongWithEmbedding], raw_filename: str):
-    filepath = Path(raw_filename.replace('.json', '_with_embeddings.json'))
-    with open(filepath, 'w') as f:
+def write_songs_with_embeddings_to_file(
+    songs: List[SongWithEmbedding], raw_filename: str
+):
+    filepath = Path(raw_filename.replace(".json", "_with_embeddings.json"))
+    with open(filepath, "w") as f:
         json.dump(songs, f, indent=4, sort_keys=True)
     return filepath
 
@@ -45,34 +45,42 @@ def process_songs(songs, cleaner: Optional[Callable[[str], str]] = None):
     songs_with_error = 0
     for song in songs:
         try:
-            lyrics = song['lyrics']
+            lyrics = song["lyrics"]
             if cleaner:
                 lyrics = cleaner(lyrics)
             lyrics_embedding = get_embedding(lyrics)
-            lyrics_translated_embedding = get_embedding(song['translated_lyrics'])
+            lyrics_translated_embedding = get_embedding(song["translated_lyrics"])
         except Exception as e:
             songs_with_error += 1
             print(f"Error processing song: {e}")
         else:
-            with_embeddings.append(SongWithEmbedding(**song,
-                                                     lyrics_embedding=lyrics_embedding,
-                                                     translated_lyrics_embedding=lyrics_translated_embedding))
+            with_embeddings.append(
+                SongWithEmbedding(
+                    **song,
+                    lyrics_embedding=lyrics_embedding,
+                    translated_lyrics_embedding=lyrics_translated_embedding,
+                )
+            )
             songs_processed += 1
             print(f"Processed {songs_processed}/{len(songs)} songs", end="\r")
-    print(f"Processed {songs_processed}/{len(songs)} songs with {songs_with_error} errors")
+    print(
+        f"Processed {songs_processed}/{len(songs)} songs with {songs_with_error} errors"
+    )
     return with_embeddings
 
 
 if __name__ == "__main__":
     # Replace this with your list of songs
-    songs_raw = load_raw_songs('data/sample_data/top_300_spotify_translated.json')
-    songs = [s for s in songs_raw if s["lyrics"]] # Filter out songs with no lyrics
+    songs_raw = load_raw_songs("data/sample_data/top_300_spotify_translated.json")
+    songs = [s for s in songs_raw if s["lyrics"]]  # Filter out songs with no lyrics
 
     converted_songs = process_songs(songs, cleaner=clean_text)
 
-    fp = write_songs_with_embeddings_to_file(converted_songs, 'data/sample_data/top_300_spotify.json')
-    print(f'Translated songs saved to: \n\t{fp}')
+    fp = write_songs_with_embeddings_to_file(
+        converted_songs, "data/sample_data/top_300_spotify.json"
+    )
+    print(f"Translated songs saved to: \n\t{fp}")
     for song in converted_songs:
-        print(song['translated_lyrics'])
-        print('\n'.join(song['lyrics'].split('\n')[0:4]))
+        print(song["translated_lyrics"])
+        print("\n".join(song["lyrics"].split("\n")[0:4]))
         print()

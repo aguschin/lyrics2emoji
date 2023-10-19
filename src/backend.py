@@ -30,7 +30,6 @@ def get_emojis():
     return {"data": {"emoji": emoji}}
 
 
-
 # Running app
 if __name__ == "__main__":
     app.run(debug=True)
