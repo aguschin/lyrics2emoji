@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 from typing import List
 
@@ -6,8 +7,11 @@ from chatgpt.text_to_emoji import translate_text
 from spotify import SongNormalised
 from concurrent.futures import ThreadPoolExecutor
 from tenacity import retry, stop_after_attempt
+sys.path.append('src')
+sys.path.append('..')
 
-from src.song_types import SongTranslated
+from song_types import SongTranslated
+from utils_clean_text import clean_text
 
 DRY_RUN = False
 
@@ -25,6 +29,7 @@ def load_raw_songs(filename) -> List[SongNormalised]:
 def process_song(song_data: SongNormalised) -> SongTranslated:
     # Replace this with your song processing logic
     lyrics = song_data["lyrics"]
+    lyrics = clean_text(lyrics)
     lyrics = lyrics.split('\n')[0:4]
     lyrics = '\n'.join(lyrics)
     if not DRY_RUN:
@@ -58,7 +63,7 @@ def process_songs_multithreaded(songs, num_threads=4):
 
 
 def write_translated_songs_to_file(songs: List[SongTranslated], raw_filename: str):
-    filepath = Path(raw_filename.replace('.json', '_translated.json'))
+    filepath = Path(raw_filename.replace('.json', '_cleaned_and_translated.json'))
     with open(filepath, 'w') as f:
         json.dump(songs, f, indent=4, sort_keys=True)
     return filepath
