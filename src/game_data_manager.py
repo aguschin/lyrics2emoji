@@ -9,7 +9,7 @@ from random import randint
 import streamlit as st
 
 INVALID_PATTERN: str = r"\([^)]*\)"
-JSON_DATA: str = "data/sample_data/top_300_spotify_translated.json"
+JSON_DATA: str = "data/sample_data/top_300_spotify_cleaned_and_translated.json"
 
 
 @dataclass(slots=True, init=False, repr=False)
