@@ -76,4 +76,3 @@ if __name__ == "__main__":
         print(song['translated_lyrics'])
         print('\n'.join(song['lyrics'].split('\n')[0:4]))
         print()
-

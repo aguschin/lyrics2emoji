@@ -13,16 +13,16 @@ strings of emojis
 """
 
 # emoji source and column of emoji
-df = pd.read_csv('../data/emoji.csv')
-emo_col = 'emoji'
+df = pd.read_csv("../data/emoji.csv")
+emo_col = "emoji"
 
 # embedding of each emoji name
-vectorized_name = np.load('../data/emoji_name_vectorized.npy')
+vectorized_name = np.load("../data/emoji_name_vectorized.npy")
 
 
 def find_closest(word, n=1):
     vector = embed(word)
-    similarities = cosine_similarity(vectorized_name, vector) 
+    similarities = cosine_similarity(vectorized_name, vector)
     if n == 1:
         return df[emo_col].iloc[np.argmax(similarities)]
     return list(df[emo_col].iloc[similarities.ravel().argsort()[-n:][::-1]])
