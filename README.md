@@ -10,7 +10,7 @@ We used this to build guess-a-song game: http://guess-a-song.streamlit.app
 
 Check out the write up about this (Nicolas, please put link to your writeup here)
 
-## App: emojify your Spotify list
+## App: emojify your Spotify playlist
 
 Try it out here: (Ming, please add a link and a gif)
 
