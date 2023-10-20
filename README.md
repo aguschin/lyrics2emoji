@@ -6,20 +6,20 @@ This repo have some tools to turn lyrics into emoji and guess the song given emo
 
 We used this to build guess-a-song game: http://guess-a-song.streamlit.app
 
-[Nicolas, please add a Gif here]
+(Nicolas, please add a Gif here)
 
-Check out the write up about this [Nicolas, please put link to your writeup here]
+Check out the write up about this (Nicolas, please put link to your writeup here)
 
 ## App: emojify your Spotify list
 
-Try it out here: [Ming, please add a link]
+Try it out here: (Ming, please add a link and a gif)
 
-Read the blog post about this game: [Ming, please put link to your blog post]
+Read the blog post about this game: (Ming, please put link to your blog post)
 
 ## Translation
 
-We tried different options for translation of lyrics into emoji. Check out our write up about this [Philip, Vasilii - links to your posts]
+We tried different options for translation of lyrics into emoji. Check out our write up about this (Philip, Vasilii - links to your posts)
 
 ## Guessing the song
 
-We used vector search by turning lines of lyrics and emojis to vectors. Check out the writeups about this: [Philip, Vasilii - links to your posts]
+We used vector search by turning lines of lyrics and emojis to vectors. Check out the writeups about this: (Philip, Vasilii - links to your posts)
