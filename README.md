@@ -2,6 +2,8 @@
 
 This repo have some tools to turn lyrics into emoji and guess the song given emojis representation.
 
+We've developed it during [Building ML-powered applications](https://harbour.space/data-science/courses/building-ml-powered-application-alexander-guschin-960) class at [Harbour.Space](https://harbour.space).
+
 ## Game: guess a song from top songs in 2000-2019
 
 We used this to build guess-a-song game: http://guess-a-song.streamlit.app
