@@ -1,48 +1,79 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import Enum
+from enum import auto
 from random import choice
-import streamlit as st
-from pandas import DataFrame
-from pandas import read_csv
-from text_to_emoji import translate_text
+
+from game_data_manager import DataManager
+from game_data_manager import Song
+
+STARTING_LIVES: int = 3
+OPTION_COUNT: int = 3
+BAR_COUNT: int = 3
 
 
+class GameStage(Enum):
+    MENU = auto()
+    GUESS = auto()
+    RESULT = auto()
+    GAME_OVER = auto()
+
+
+@dataclass
+class Guess:
+    song: Song
+    is_correct: bool
+
+
+@dataclass
+class Level:
+    options: list[Song]
+    correct: Song
+
+    @staticmethod
+    def new_level() -> Level:
+        options: list[Song] = DataManager.get().get_songs(n=OPTION_COUNT)
+        return Level(options, choice(options))
+
+
+@dataclass(init=False, slots=True)
 class GameState:
+    level: Level
+    guesses: list[Guess]
+    game_stage: GameStage
+
     def __init__(self) -> None:
-        self.options: list[str] = get_options()
-        self.correct_option: str = choice(self.options)
-        self.correct_songs: list[str] = []
-        self.score: int = 0
-        self.game_over: bool = False
+        self.level: Level = Level.new_level()
+        self.guesses: list[Guess] = []
+        self.game_stage: GameStage = GameStage.MENU
 
-    def next_level(self, option: str) -> None:
-        self.score += 1
-        self.correct_songs.append(option)
-        self.options = get_options()
-        self.correct_option = choice(self.options)
+    def get_latest_guess(self) -> Guess:
+        if len(self.guesses) == 0:
+            raise Exception("no guesses made")
 
-    def end_game(self) -> None:
-        self.game_over = True
+        return self.guesses[-1]
+
+    def get_lives(self) -> int:
+        wrong_guesses: int = len(self.guesses) - self.get_score()
+        return STARTING_LIVES - wrong_guesses
+
+    def get_score(self) -> int:
+        return len(list(filter(lambda guess: guess.is_correct, self.guesses)))
+
+    def is_dead(self) -> bool:
+        return self.get_lives() == 0
+
+    def set_stage(self, stage: GameStage) -> None:
+        self.game_stage = stage
+
+    def guess(self, option: Song) -> None:
+        self.guesses.append(Guess(option, option == self.level.correct))
+        self.set_stage(GameStage.RESULT)
 
     def reset(self) -> None:
-        self.game_over = False
-        self.score = 0
-        self.options = get_options()
-        self.correct_option = choice(self.options)
+        self.guesses = []
+        self.next_level()
 
-    def get_correct_option_emoji(self) -> str:
-        return translate_text(self.correct_option)
-
-    def __repr__(self) -> str:
-        return f"words: {self.options} \ncorrect: {self.correct_option} " \
-               f"\ncorrect songs: {self.correct_songs}\nscore:" \
-               f" {self.score} \ngame over: {self.game_over}"
-
-
-@st.cache_data
-def get_data() -> DataFrame:
-    data = read_csv("data/sample_data/top_10_artists_songs.csv", nrows=1000)
-    return data
-
-
-def get_options() -> list[str]:
-    data: DataFrame = get_data()
-    return data.sample(n=3).song_name.values
+    def next_level(self) -> None:
+        self.level = Level.new_level()
