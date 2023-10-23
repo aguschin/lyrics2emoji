@@ -8,9 +8,9 @@ We've developed it during [Building ML-powered applications](https://harbour.spa
 
 We used this to build guess-a-song game: http://guess-a-song.streamlit.app
 
-(Nicolas, please add a Gif here)
+![guess-a-song](https://github.com/aguschin/lyrics2emoji/assets/6797716/c1a7fe0a-c515-4205-960d-179d75be9d91)
 
-Check out the write up about this (Nicolas, please put link to your writeup here)
+Check out the write up about this: https://medium.com/@nicolas.parucker/building-a-song-emoji-guessing-game-9a04f8811f98
 
 ## App: emojify your Spotify playlist
 
