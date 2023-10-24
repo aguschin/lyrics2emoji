@@ -20,7 +20,7 @@ Read the blog post about this game: (Ming, please put link to your blog post)
 
 ## Translation
 
-We tried different options for translation of lyrics into emoji. Check out our write up about this (Philip, Vasilii - links to your posts)
+We tried different options for translation of lyrics into emoji. Check out our write up about this https://medium.com/@purgen200/building-ml-powered-application-emoji2text-81fecc121ea2
 
 ## Guessing the song
 
